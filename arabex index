@@ -1,0 +1,50 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Arabex Coin - Coming Soon</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      text-align: center;
+      color: #333;
+    }
+    h1 {
+      font-size: 2.5rem;
+      color: #008080;
+    }
+    p {
+      font-size: 1.2rem;
+      margin: 10px 0;
+    }
+    .info {
+      margin-top: 20px;
+      font-size: 1rem;
+      color: #555;
+    }
+    .contract {
+      font-family: monospace;
+      font-size: 0.9rem;
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+  <h1>Arabex Coin</h1>
+  <p><strong>Coming Soon</strong></p>
+  <div class="info">
+    <p>Contact: <a href="mailto:arabexcoin1@gmail.com">arabexcoin1@gmail.com</a></p>
+    <p>Token Contract:</p>
+    <p class="contract">0xD73B9f6353010F207C532fE88Ef5915Cf3288D9C</p>
+  </div>
+</body>
+</html>
