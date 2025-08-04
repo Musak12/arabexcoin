@@ -85,4 +85,20 @@
     </div>
   </div>
 </body>
+  <script>
+  const connectButton = document.getElementById('connectButton');
+  connectButton.addEventListener('click', async () => {
+    if (typeof window.ethereum !== 'undefined') {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        alert('Connected wallet: ' + accounts[0]);
+      } catch (error) {
+        alert('Connection failed: ' + error.message);
+      }
+    } else {
+      alert('MetaMask is not installed');
+    }
+  });
+</script>
+
 </html>
