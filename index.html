@@ -35,18 +35,33 @@
       background-color: #222;
       padding: 20px;
       border-radius: 10px;
-      word-break: break-all;
+      word-break: break-word;
       margin-bottom: 30px;
     }
 
     .contact {
       color: #aaa;
       font-size: 0.9em;
+      margin-bottom: 20px;
     }
 
     .logo {
       width: 100px;
       margin-bottom: 30px;
+    }
+
+    .connect-wallet {
+      background-color: #00ffc3;
+      border: none;
+      color: #000;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+
+    .connect-wallet:hover {
+      background-color: #00d6aa;
     }
 
     a {
@@ -69,22 +84,7 @@
     }
   </style>
 </head>
-<button id="connectButton" style="padding: 10px 20px; font-size: 16px;">Connect Wallet</button>
-  <script>
-  const connectButton = document.getElementById('connectButton');
-  connectButton.addEventListener('click', async () => {
-    if (typeof window.ethereum !== 'undefined') {
-      try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        alert('Connected wallet: ' + accounts[0]);
-      } catch (error) {
-        alert('Connection failed: ' + error.message);
-      }
-    } else {
-      alert('MetaMask is not installed');
-    }
-  });
-</script>
+<body>
   <div class="container">
     <img src="https://i.imgur.com/3JhmD6Q.png" alt="Arabex Logo" class="logo" />
     <h1>Arabex Coin (ARX)</h1>
@@ -95,9 +95,26 @@
       0xD73B9f6353010F207C532fE88Ef5915Cf3288D9C
     </div>
 
+    <button class="connect-wallet" onclick="connectWallet()">Connect Wallet</button>
+
     <div class="contact">
       Contact us: <a href="mailto:arabexcoin1@gmail.com">arabexcoin1@gmail.com</a>
     </div>
   </div>
+
+  <script>
+    async function connectWallet() {
+      if (typeof window.ethereum !== 'undefined') {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          alert('Connected: ' + accounts[0]);
+        } catch (err) {
+          alert('Connection failed: ' + err.message);
+        }
+      } else {
+        alert('MetaMask is not installed. Please install it to use this feature.');
+      }
+    }
+  </script>
 </body>
 </html>
