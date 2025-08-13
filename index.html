@@ -27,7 +27,13 @@
       word-break: break-word; margin-bottom: 30px;
     }
     .contact { color: #aaa; font-size: 0.9em; margin-bottom: 20px; }
-    .logo { width: 100px; margin-bottom: 30px; }
+
+    /* Logo */
+    .logo {
+      width: 220px;         /* adjust as you like */
+      height: auto;
+      margin-bottom: 30px;
+    }
 
     .connect-wallet,
     .whitepaper-button {
@@ -44,13 +50,15 @@
 
     @media (max-width: 600px) {
       h1 { font-size: 2em; }
-      .logo { width: 80px; }
+      .logo { width: 160px; }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <img src="https://i.imgur.com/3JhmD6Q.png" alt="Arabex Logo" class="logo" />
+    <!-- ✅ Local logo reference (make sure this file exists in your repo) -->
+    <img src="assets/img/arabex-logo.png" alt="Arabex Logo" class="logo" loading="lazy" />
+
     <h1>Arabex Coin (ARX)</h1>
     <h2 id="headline">🚀 Coming Soon: Official Launch of ARX Presale</h2>
 
