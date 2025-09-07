@@ -27,16 +27,8 @@
       word-break: break-word; margin-bottom: 30px;
     }
     .contact { color: #aaa; font-size: 0.9em; margin-bottom: 20px; }
-
-    /* Logo */
-    .logo {
-      width: 220px;         /* adjust as you like */
-      height: auto;
-      margin-bottom: 30px;
-    }
-
-    .connect-wallet,
-    .whitepaper-button {
+    .logo { width: 220px; height: auto; margin-bottom: 30px; }
+    .connect-wallet, .whitepaper-button {
       background-color: #00ffc3; border: none; color: #000;
       padding: 12px 24px; border-radius: 8px; font-size: 1em;
       cursor: pointer; display: inline-block; margin: 10px 8px; text-decoration: none;
@@ -44,30 +36,23 @@
     }
     .connect-wallet:hover, .whitepaper-button:hover { background-color: #00d6aa; }
     .connect-wallet:disabled { opacity: 0.6; cursor: not-allowed; }
-
     a { color: #00ffc3; text-decoration: none; }
     a:hover { text-decoration: underline; }
-
-    @media (max-width: 600px) {
-      h1 { font-size: 2em; }
-      .logo { width: 160px; }
-    }
+    @media (max-width: 600px) { h1 { font-size: 2em; } .logo { width: 160px; } }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- ✅ Use the file in the repo root -->
     <img src="arabex-logo.png" alt="Arabex Logo" class="logo" loading="lazy" />
 
     <h1>Arabex Coin (ARX)</h1>
     <h2 id="headline">🚀 Coming Soon: Official Launch of ARX Presale</h2>
 
-    <!-- Countdown -->
     <div id="countdown">Calculating…</div>
 
     <div class="token-info">
       <strong>Token Contract:</strong><br />
-      0xD73B9f6353010F207C532fE88Ef5915Cf3288D9C
+      0x3A18719De55E2b9420beec4E1B03852e4cd7c46
     </div>
 
     <!-- Buttons -->
@@ -87,14 +72,19 @@
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
 
   <script>
-    // ===== Presale config =====
-    const PRESALE = "0xc9B53cCDCcaEe27625Fc09a05BF7455806Be46c8";
-    const PRESALE_START = 1756684800 * 1000; // Sep 1, 2025 00:00:00 UTC (ms)
+    // ===== Config (updated) =====
+    const PRESALE = "0x762438b37de78Ebbdeeac6D5F6Cf85f6F002E0aF";
+    const TOKEN   = "0x3A18719De55E2b9420beec4E1B03852e4cd7c46";
+    // Sep 1, 2025 00:00:00 UTC (ms). Change if you moved the launch.
+    const PRESALE_START = 1756684800 * 1000;
+
+    // Minimal ABIs
     const ABI = [
       "function buy() external payable",
       "function claim() external",
       "function lockedBalanceOf(address) view returns (uint256 totalLocked, uint256 nextUnlockTime)"
     ];
+    const ABI_BUY_WITH_BNB = ["function buyWithBNB() payable"];
 
     let provider, signer, contract;
 
@@ -107,15 +97,28 @@
       alert("Wallet connected");
     }
 
+    // Try buyWithBNB() first, fallback to buy()
     async function buyPresale() {
       if (!contract) await connectWallet();
       if (Date.now() < PRESALE_START) { alert("Presale starts soon."); return; }
       const bnb = prompt("Enter BNB amount (e.g. 0.05):","");
       if (!bnb) return;
-      const tx = await contract.buy({ value: ethers.utils.parseEther(bnb) });
-      alert("Tx sent: " + tx.hash);
-      await tx.wait();
-      alert("Purchase confirmed!");
+      const value = ethers.utils.parseEther(bnb.toString());
+
+      try {
+        // attempt buyWithBNB()
+        const presale1 = new ethers.Contract(PRESALE, ABI_BUY_WITH_BNB, signer);
+        const tx = await presale1.buyWithBNB({ value });
+        alert("Tx sent: " + tx.hash);
+        await tx.wait();
+        alert("Purchase confirmed!");
+      } catch (e1) {
+        // fallback to buy()
+        const tx2 = await contract.buy({ value });
+        alert("Tx sent: " + tx2.hash);
+        await tx2.wait();
+        alert("Purchase confirmed!");
+      }
     }
 
     async function claimARX() {
