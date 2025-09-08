@@ -242,6 +242,7 @@
     // New: pay using USD input while sending BNB under the hood
     async function buyPresaleUSD() {
       try {
+        debugger;
         if (!presaleContract) await connectWallet();
         if (Date.now() < PRESALE_START) { alert("Presale starts soon."); return; }
 
@@ -252,6 +253,12 @@
         // 1) Convert USD → BNB (wei) using Chainlink BNB/USD
         const value = await quoteBnbForUsd(usdStr);
 
+        // Check wallet balance
+        const balance = await signer.getBalance();
+        if (balance.lt(value)) {
+          alert("Insufficient BNB balance in your wallet to complete this purchase.");
+          return;
+        }
         // (Optional) show preview to user
         const bnbEth = ethers.utils.formatEther(value);
         const arxExpected = (Number(usdStr) * 1000).toLocaleString(); // $0.001 ⇒ 1 USDT buys 1,000 ARX
@@ -272,6 +279,7 @@
         }
       } catch (err) {
         console.error(err);
+
         alert("Buy failed: " + (err?.message || err));
       }
     }
