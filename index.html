@@ -161,10 +161,10 @@
         if (!window.ethereum) {
           if (isMobile) {
             openInMetaMaskMobile();
-            //return;
+            return;
           }
           //alert("MetaMask is not detected. On mobile, please open this site inside the MetaMask app browser (Menu → Browser → type arabexcoin.com). On desktop, install MetaMask extension.");
-          //return;
+          return;
         }
         await ensureBSC();
         await ethereum.request({ method: "eth_requestAccounts" });
