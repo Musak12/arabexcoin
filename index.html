@@ -255,13 +255,15 @@
 
         // Check wallet balance
         const balance = await signer.getBalance();
-        if (balance.lt(value)) {
-          alert("Insufficient BNB balance in your wallet to complete this purchase.");
-          return;
-        }
+        
         // (Optional) show preview to user
         const bnbEth = ethers.utils.formatEther(value);
         const arxExpected = (Number(usdStr) * 1000).toLocaleString(); // $0.001 ⇒ 1 USDT buys 1,000 ARX
+        if (balance.lt(value)) {
+          alert(`Insufficient BNB balance in your wallet to buy ${arxExpected} ARX`);
+          return;
+        }
+        
         if (!confirm(`You will send ~${bnbEth} BNB and receive about ${arxExpected} ARX`)) return;
 
         // 2) Call your existing presale function with computed BNB
