@@ -297,17 +297,34 @@
       ethereum.on('accountsChanged', () => window.location.reload());
     }
 
-    // Deep link helper for MetaMask Mobile
+
+ 
+      // Deep link helper for MetaMask Mobile
     function openInMetaMaskMobile() {
-      // Opens the site inside MetaMask Mobile's in-app browser
-      const path = `${window.location.hostname}${window.location.pathname}`;
-      // Try the native scheme first
-      window.location.href = `metamask://dapp/${path}`;
-      // Fallback to universal link
+      // Use FULL URL with protocol so MetaMask opens directly to your DApp
+      const full = window.location.href;
+
+      // 1) Try native MetaMask scheme
+      window.location.href = `metamask://dapp/${full}`;
+
+      // 2) Fallback to universal link after short delay
       setTimeout(() => {
-        window.location.href = `https://metamask.app.link/dapp/${path}`;
+        window.location.href = `https://metamask.app.link/dapp/${full}`;
       }, 800);
     }
+
+    // Deep link helper for MetaMask Mobile
+    // function openInMetaMaskMobile() {
+    //   // Opens the site inside MetaMask Mobile's in-app browser
+    //   const path = `${window.location.hostname}${window.location.pathname}`;
+    //   // Try the native scheme first
+    //   window.location.href = `metamask://dapp/${path}`;
+    //   // Fallback to universal link
+    //   setTimeout(() => {
+    //     window.location.href = `https://metamask.app.link/dapp/${path}`;
+    //   }, 800);
+    // }
+  
   </script>
 </body>
 </html>
