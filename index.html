@@ -74,7 +74,7 @@
     <!-- Buttons -->
     <div class="row">
       <button id="connectBtn" class="btn" onclick="connectWallet()">Connect Wallet</button>
-      <button id="buyBtn" class="btn" onclick="buyPresale()" disabled>Buy ARX (Presale)</button>
+      <button id="buyBtn" class="btn" onclick="buyPresaleUSD()" disabled>Buy ARX (Presale)</button>
       <button id="claimBtn" class="btn" onclick="claimARX()" disabled>Claim ARX</button>
       <button id="watchBtn" class="btn" onclick="addTokenToWallet()" disabled>Add ARX to Wallet</button>
       <button id="openMetaMaskBtn" class="btn" style="display:none" onclick="openInMetaMaskMobile()">Open in MetaMask App</button>
@@ -101,7 +101,7 @@
     const PRESALE_START = 1756684800 * 1000;
     // Optional end control (if you want to auto-disable after end)
     // const PRESALE_END = 1764547199 * 1000; // Nov 30, 2025 23:59:59 UTC — or update if redeployed
-
+    
     const BSC_PARAMS = {
       chainId: "0x38", // 56
       chainName: "BNB Smart Chain",
@@ -126,6 +126,12 @@
       "function lockedBalanceOf(address) view returns (uint256 totalLocked, uint256 nextUnlockTime)"
     ];
     const PRESALE_BUY_WITH_BNB_ABI = ["function buyWithBNB() payable"];
+    
+    // right after constants, sync the visible token text
+    document.addEventListener('DOMContentLoaded', () => {
+      const el = document.getElementById('tokenAddr');
+      if (el) el.textContent = TOKEN;
+    });
 
     let provider, signer, presaleContract;
 
@@ -184,15 +190,74 @@
     }
 
     // Try buyWithBNB() first, fallback to buy()
-    async function buyPresale() {
+    // async function buyPresale() {
+    //   try {
+    //     if (!presaleContract) await connectWallet();
+    //     if (Date.now() < PRESALE_START) { alert("Presale starts soon."); return; }
+    //     const bnbStr = prompt("Enter BNB amount (e.g. 0.05):", "");
+    //     if (!bnbStr) return;
+    //     if (isNaN(Number(bnbStr)) || Number(bnbStr) <= 0) { alert("Invalid amount"); return; }
+    //     const value = ethers.utils.parseEther(String(bnbStr));
+
+    //     try {
+    //       const presale1 = new ethers.Contract(PRESALE, PRESALE_BUY_WITH_BNB_ABI, signer);
+    //       const tx = await presale1.buyWithBNB({ value });
+    //       alert("Tx sent: " + tx.hash);
+    //       await tx.wait();
+    //       alert("Purchase confirmed!");
+    //     } catch (e1) {
+    //       const tx2 = await presaleContract.buy({ value });
+    //       alert("Tx sent: " + tx2.hash);
+    //       await tx2.wait();
+    //       alert("Purchase confirmed!");
+    //     }
+    //   } catch (err) {
+    //     console.error(err);
+    //     alert("Buy failed: " + (err?.message || err));
+    //   }
+    // }
+    
+    // Chainlink BNB/USD feed on BSC mainnet (8 decimals)
+    const BNB_USD_FEED = "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE";
+    const FEED_ABI = [
+      "function latestRoundData() view returns (uint80, int256 answer, uint256, uint256, uint80)",
+      "function decimals() view returns (uint8)"
+    ];
+    // Helper: quote how much BNB (in wei) for a given USD string (e.g. "100.0")
+    async function quoteBnbForUsd(usdStr) {
+      if (!provider) await connectWallet(); // make sure provider/signer exist
+      const feed = new ethers.Contract(BNB_USD_FEED, FEED_ABI, provider);
+      const [dec, round] = await Promise.all([
+        feed.decimals(),                 // usually 8
+        feed.latestRoundData()
+      ]);
+      const price = round.answer;        // BNB price in USD with `dec` decimals
+      // USD amount scaled to `dec`
+      const usd = ethers.utils.parseUnits(usdStr, dec);      // e.g., "100" -> 100 * 10^dec
+      // BNB (wei) = (usd * 1e18) / price
+      const bnbWei = usd.mul(ethers.constants.WeiPerEther).div(price);
+      return bnbWei;
+    }
+
+    // New: pay using USD input while sending BNB under the hood
+    async function buyPresaleUSD() {
       try {
         if (!presaleContract) await connectWallet();
         if (Date.now() < PRESALE_START) { alert("Presale starts soon."); return; }
-        const bnbStr = prompt("Enter BNB amount (e.g. 0.05):", "");
-        if (!bnbStr) return;
-        if (isNaN(Number(bnbStr)) || Number(bnbStr) <= 0) { alert("Invalid amount"); return; }
-        const value = ethers.utils.parseEther(String(bnbStr));
 
+        const usdStr = prompt("Enter USD/USDT amount (e.g. 100):", "");
+        if (!usdStr) return;
+        if (isNaN(Number(usdStr)) || Number(usdStr) <= 0) { alert("Invalid USD amount"); return; }
+
+        // 1) Convert USD → BNB (wei) using Chainlink BNB/USD
+        const value = await quoteBnbForUsd(usdStr);
+
+        // (Optional) show preview to user
+        const bnbEth = ethers.utils.formatEther(value);
+        const arxExpected = (Number(usdStr) * 1000).toLocaleString(); // $0.001 ⇒ 1 USDT buys 1,000 ARX
+        if (!confirm(`You will send ~${bnbEth} BNB and receive about ${arxExpected} ARX`)) return;
+
+        // 2) Call your existing presale function with computed BNB
         try {
           const presale1 = new ethers.Contract(PRESALE, PRESALE_BUY_WITH_BNB_ABI, signer);
           const tx = await presale1.buyWithBNB({ value });
