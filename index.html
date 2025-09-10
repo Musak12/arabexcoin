@@ -4,59 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Arabex Coin (ARX)</title>
-  <style>
-    :root {
-      --accent: #00ffc3;
-      --accent-2: #00d6aa;
-      --bg-1: #0e0e0e;
-      --bg-2: #1f1f1f;
-      --panel: #222;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to bottom, var(--bg-1), var(--bg-2));
-      color: white;
-      text-align: center;
-      padding: 50px 20px;
-    }
-    .container { max-width: 760px; margin: auto; }
-    h1 { font-size: 2.5em; color: var(--accent); margin-bottom: 10px; }
-    h2 { font-weight: normal; color: #ccc; margin-bottom: 16px; }
-    #countdown {
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      margin-bottom: 24px;
-      color: var(--accent);
-    }
-    .token-info {
-      background-color: var(--panel);
-      padding: 20px; border-radius: 10px;
-      word-break: break-word; margin-bottom: 18px;
-      text-align: left;
-    }
-    .row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-    .contact { color: #aaa; font-size: 0.9em; margin: 14px 0 6px; }
-    .logo { width: 220px; height: auto; margin-bottom: 22px; border-radius: 12px; }
-    .btn {
-      background-color: var(--accent); border: none; color: #000;
-      padding: 12px 18px; border-radius: 8px; font-size: 1em;
-      cursor: pointer; display: inline-block; margin: 8px; text-decoration: none;
-      font-weight: 700;
-    }
-    .btn:hover { background-color: var(--accent-2); }
-    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
-    a { color: var(--accent); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .kvs { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-    .badge { display:inline-block; padding: 2px 8px; border-radius: 999px; background:#333; color:#ddd; font-size:12px; margin-left:8px; }
-    @media (max-width: 600px) { h1 { font-size: 2em; } .logo { width: 160px; } }
-  </style>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <div class="container">
-    <!-- Prefer repo path; fallback kept to simple filename if you keep it in root -->
     <img src="assets/img/arabex-logo.png" onerror="this.src='arabex-logo.png'" alt="Arabex Logo" class="logo" loading="lazy" />
 
     <h1>Arabex Coin (ARX)</h1>
@@ -65,22 +16,35 @@
     <div id="countdown">Calculating…</div>
 
     <div class="token-info">
-      <!-- <div><strong>Network:</strong> BNB Smart Chain <span class="badge">Chain ID 56</span></div> -->
       <div><strong>Token Contract:</strong> <span class="kvs" id="tokenAddr">0x3A18719De55E2b9420beec4E1B03852e4cd7c46c</span></div>
-      <!-- <div><strong>Presale Contract:</strong> <span class="kvs" id="presaleAddr">0x762438b37de78Ebbdeeac6D5F6Cf85f6F002E0aF</span></div> -->
-      <!-- <div><strong>Decimals:</strong> 18</div> -->
     </div>
 
-    <!-- Buttons -->
     <div class="row">
       <button id="connectBtn" class="btn" onclick="connectWallet()">Connect Wallet</button>
+      <button id="chooseBtn" class="btn" onclick="openWalletChooser()">Choose Wallet</button>
       <button id="buyBtn" class="btn" onclick="buyPresaleUSD()" disabled>Buy ARX (Presale)</button>
       <button id="claimBtn" class="btn" onclick="claimARX()" disabled>Claim ARX</button>
       <button id="watchBtn" class="btn" onclick="addTokenToWallet()" disabled>Add ARX to Wallet</button>
       <button id="openMetaMaskBtn" class="btn" style="display:none" onclick="openInMetaMaskMobile()">Open in MetaMask App</button>
     </div>
 
-    <!-- Whitepaper -->
+    
+    <!-- Wallet Chooser Modal -->
+    <div id="walletModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:1000; align-items:center; justify-content:center;">
+      <div style="background:#1f1f1f; padding:20px; border-radius:12px; width:min(420px,92%); text-align:left;">
+        <h3 style="margin-top:0;">Select a wallet</h3>
+        <p style="color:#bbb;margin-top:-8px">On mobile, choose one of the supported wallets below.</p>
+        <div class="row" style="justify-content:flex-start">
+          <!-- <button class="btn" onclick="connectInjected()">MetaMask (in-app)</button> -->
+          <button class="btn" onclick="connectWallet()">MetaMask App</button>
+          <button class="btn" onclick="openInTrustWallet()">Trust Wallet</button>
+        </div>
+        <div style="margin-top:14px; display:flex; gap:8px; justify-content:flex-end;">
+          <button class="btn" onclick="closeWalletChooser()">Close</button>
+        </div>
+      </div>
+    </div>
+
     <p>
       <a class="btn" href="ARABEX_Whitepaper_Corrected.pdf" target="_blank">📄 Download Whitepaper</a>
     </p>
@@ -90,298 +54,7 @@
     </div>
   </div>
 
-  <!-- Ethers.js -->
   <script src="https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-
-  <script>
-    // ===== Config =====
-    const PRESALE   = "0x762438b37de78Ebbdeeac6D5F6Cf85f6F002E0aF";
-    const TOKEN     = "0x3A18719De55E2b9420beec4E1B03852e4cd7c46c"; // corrected with 'c'
-    // Start: Sep 1, 2025 00:00:00 UTC (ms)
-    const PRESALE_START = 1756684800 * 1000;
-    // Optional end control (if you want to auto-disable after end)
-    // const PRESALE_END = 1764547199 * 1000; // Nov 30, 2025 23:59:59 UTC — or update if redeployed
-    
-    const BSC_PARAMS = {
-      chainId: "0x38", // 56
-      chainName: "BNB Smart Chain",
-      nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 },
-      rpcUrls: ["https://bsc-dataseed.binance.org/"],
-      blockExplorerUrls: ["https://bscscan.com/"]
-    };
-
-    debugger;
-    // Basic mobile detection
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    if (isMobile) {
-      // Show deep-link button for MetaMask Mobile
-      const btn = document.getElementById('openMetaMaskBtn');
-      if (btn) btn.style.display = 'inline-block';
-    }
-
-    // Minimal ABIs — adapt to your actual contracts if functions differ
-    const PRESALE_ABI = [
-      "function buy() external payable",
-      "function claim() external",
-      "function lockedBalanceOf(address) view returns (uint256 totalLocked, uint256 nextUnlockTime)"
-    ];
-    const PRESALE_BUY_WITH_BNB_ABI = ["function buyWithBNB() payable"];
-    
-    // right after constants, sync the visible token text
-    document.addEventListener('DOMContentLoaded', () => {
-      const el = document.getElementById('tokenAddr');
-      if (el) el.textContent = TOKEN;
-    });
-
-    let provider, signer, presaleContract;
-
-    async function ensureBSC() {
-    debugger;
-      if (!window.ethereum) throw new Error("MetaMask is not installed");
-    const chainId = await ethereum.request({ method: 'eth_chainId' });
-      if (chainId !== BSC_PARAMS.chainId) {
-        try {
-          await ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: BSC_PARAMS.chainId }] });
-        } catch (switchErr) {
-          // If the chain is not added to MetaMask
-          if (switchErr.code === 4902) {
-            await ethereum.request({ method: 'wallet_addEthereumChain', params: [BSC_PARAMS] });
-          } else {
-            throw switchErr;
-          }
-        }
-      }
-    }
-
-    // async function connectWallet() {
-    //   if (!window.ethereum) { alert("MetaMask is not installed."); return; }
-    //   await ethereum.request({ method: "eth_requestAccounts" });
-    //   provider = new ethers.providers.Web3Provider(window.ethereum);
-    //   signer = provider.getSigner();
-    //   contract = new ethers.Contract(PRESALE, ABI, signer);
-    //   alert("Wallet connected");
-    // }
-    async function connectWallet() {
-      try {
-        // If no injected provider (common on mobile outside in-app browsers), try deep-linking
-        if (!window.ethereum) {
-          if (isMobile) {
-            openInMetaMaskMobile();
-            return;
-          }
-          alert("MetaMask is not detected. On mobile, please open this site inside the MetaMask app browser (Menu → Browser → type arabexcoin.com). On desktop, install MetaMask extension.");
-          return;
-        }
-        await ensureBSC();
-        await ethereum.request({ method: "eth_requestAccounts" });
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        signer = provider.getSigner();
-        presaleContract = new ethers.Contract(PRESALE, PRESALE_ABI, signer);
-        const addr = await signer.getAddress();
-        document.getElementById('connectBtn').textContent = `Connected: ${addr.slice(0,6)}…${addr.slice(-4)}`;
-        document.getElementById('buyBtn').disabled = false;
-        document.getElementById('claimBtn').disabled = false;
-        document.getElementById('watchBtn').disabled = false;
-        alert("Wallet connected on BNB Smart Chain");
-      } catch (err) {
-        console.error(err);
-        alert("Failed to connect wallet: " + (err?.message || err));
-      }
-    }
-
-    // Try buyWithBNB() first, fallback to buy()
-    // async function buyPresale() {
-    //   try {
-    //     if (!presaleContract) await connectWallet();
-    //     if (Date.now() < PRESALE_START) { alert("Presale starts soon."); return; }
-    //     const bnbStr = prompt("Enter BNB amount (e.g. 0.05):", "");
-    //     if (!bnbStr) return;
-    //     if (isNaN(Number(bnbStr)) || Number(bnbStr) <= 0) { alert("Invalid amount"); return; }
-    //     const value = ethers.utils.parseEther(String(bnbStr));
-
-    //     try {
-    //       const presale1 = new ethers.Contract(PRESALE, PRESALE_BUY_WITH_BNB_ABI, signer);
-    //       const tx = await presale1.buyWithBNB({ value });
-    //       alert("Tx sent: " + tx.hash);
-    //       await tx.wait();
-    //       alert("Purchase confirmed!");
-    //     } catch (e1) {
-    //       const tx2 = await presaleContract.buy({ value });
-    //       alert("Tx sent: " + tx2.hash);
-    //       await tx2.wait();
-    //       alert("Purchase confirmed!");
-    //     }
-    //   } catch (err) {
-    //     console.error(err);
-    //     alert("Buy failed: " + (err?.message || err));
-    //   }
-    // }
-    
-    // Chainlink BNB/USD feed on BSC mainnet (8 decimals)
-    const BNB_USD_FEED = "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE";
-    const FEED_ABI = [
-      "function latestRoundData() view returns (uint80, int256 answer, uint256, uint256, uint80)",
-      "function decimals() view returns (uint8)"
-    ];
-    // Helper: quote how much BNB (in wei) for a given USD string (e.g. "100.0")
-    async function quoteBnbForUsd(usdStr) {
-      if (!provider) await connectWallet(); // make sure provider/signer exist
-      const feed = new ethers.Contract(BNB_USD_FEED, FEED_ABI, provider);
-      const [dec, round] = await Promise.all([
-        feed.decimals(),                 // usually 8
-        feed.latestRoundData()
-      ]);
-      const price = round.answer;        // BNB price in USD with `dec` decimals
-      // USD amount scaled to `dec`
-      const usd = ethers.utils.parseUnits(usdStr, dec);      // e.g., "100" -> 100 * 10^dec
-      // BNB (wei) = (usd * 1e18) / price
-      const bnbWei = usd.mul(ethers.constants.WeiPerEther).div(price);
-      return bnbWei;
-    }
-
-    // New: pay using USD input while sending BNB under the hood
-    async function buyPresaleUSD() {
-      try {
-        debugger;
-        if (!presaleContract) await connectWallet();
-        if (Date.now() < PRESALE_START) { alert("Presale starts soon."); return; }
-
-        const usdStr = prompt("Enter USD/USDT amount (e.g. 100):", "");
-        if (!usdStr) return;
-        if (isNaN(Number(usdStr)) || Number(usdStr) <= 0) { alert("Invalid USD amount"); return; }
-
-        // 1) Convert USD → BNB (wei) using Chainlink BNB/USD
-        const value = await quoteBnbForUsd(usdStr);
-
-        // Check wallet balance
-        const balance = await signer.getBalance();
-        
-        // (Optional) show preview to user
-        const bnbEth = ethers.utils.formatEther(value);
-        const arxExpected = (Number(usdStr) * 1000).toLocaleString(); // $0.001 ⇒ 1 USDT buys 1,000 ARX
-        if (balance.lt(value)) {
-          alert(`Insufficient BNB balance in your wallet to buy ${arxExpected} ARX`);
-          return;
-        }
-        
-        if (!confirm(`You will send ~${bnbEth} BNB and receive about ${arxExpected} ARX`)) return;
-
-        // 2) Call your existing presale function with computed BNB
-        try {
-          const presale1 = new ethers.Contract(PRESALE, PRESALE_BUY_WITH_BNB_ABI, signer);
-          const tx = await presale1.buyWithBNB({ value });
-          alert("Tx sent: " + tx.hash);
-          await tx.wait();
-          alert("Purchase confirmed!");
-        } catch (e1) {
-          const tx2 = await presaleContract.buy({ value });
-          alert("Tx sent: " + tx2.hash);
-          await tx2.wait();
-          alert("Purchase confirmed!");
-        }
-      } catch (err) {
-        console.error(err);
-
-        alert("Buy failed: " + (err?.message || err));
-      }
-    }
-
-    async function claimARX() {
-      try {
-        if (!presaleContract) await connectWallet();
-        const me = await signer.getAddress();
-        const info = await presaleContract.lockedBalanceOf(me);
-        const totalLocked = info[0];
-        const nextUnlock = info[1];
-        if (totalLocked.eq(0)) { alert("Nothing to claim yet."); return; }
-        const nowSec = Math.floor(Date.now()/1000);
-        if (nowSec < nextUnlock.toNumber()) {
-          const secs = nextUnlock.toNumber() - nowSec;
-          const hrs = Math.ceil(secs/3600);
-          alert("Still locked for ~" + hrs + " hours.");
-          return;
-        }
-        const tx = await presaleContract.claim();
-        alert("Claim tx: " + tx.hash);
-        await tx.wait();
-        alert("Claimed!");
-      } catch (err) {
-        console.error(err);
-        alert("Claim failed: " + (err?.message || err));
-      }
-    }
-
-    async function addTokenToWallet() {
-      try {
-        await ensureBSC();
-        await ethereum.request({
-          method: 'wallet_watchAsset',
-          params: {
-            type: 'ERC20',
-            options: {
-              address: TOKEN,
-              symbol: 'ARX',
-              decimals: 18,
-              image: window.location.origin + '/assets/img/arabex-logo.png'
-            }
-          }
-        });
-      } catch (err) {
-        console.error(err);
-        alert("Could not add token: " + (err?.message || err));
-      }
-    }
-
-    // ===== Countdown + button state =====
-    function fmt(n){ return n.toString().padStart(2,"0"); }
-    function updateCountdown() {
-      const now = Date.now();
-      const el = document.getElementById("countdown");
-      const btn = document.getElementById("buyBtn");
-      const headline = document.getElementById("headline");
-
-      if (now < PRESALE_START) {
-        const diff = PRESALE_START - now;
-        const d = Math.floor(diff / (1000*60*60*24));
-        const h = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
-        const m = Math.floor((diff % (1000*60*60)) / (1000*60));
-        const s = Math.floor((diff % (1000*60)) / 1000);
-        el.textContent = `Presale starts in ${d}d ${fmt(h)}h:${fmt(m)}m:${fmt(s)}s (UTC)`;
-        btn.disabled = true;
-        btn.textContent = "Presale starts soon";
-      } else {
-        el.textContent = "🔴 Presale is LIVE";
-        headline.textContent = "🔥 ARX Presale is LIVE";
-        btn.disabled = false;
-        btn.textContent = "Buy ARX (Presale)";
-      }
-
-      // If you want to disable after end, uncomment + set PRESALE_END
-      // if (typeof PRESALE_END !== 'undefined' && now > PRESALE_END) {
-      //   el.textContent = "⛔ Presale has ended";
-      //   btn.disabled = true;
-      //   btn.textContent = "Presale ended";
-      // }
-    }
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
-
-    // Keep UI in sync if user changes networks in MetaMask
-    if (window.ethereum) {
-      ethereum.on('chainChanged', () => window.location.reload());
-      ethereum.on('accountsChanged', () => window.location.reload());
-    }
-
-
-    // ...existing code...
-    function openInMetaMaskMobile() {
-      const full = window.location.href;
-      window.location.href = `metamask://dapp/${full}`;
-      setTimeout(() => {
-        window.location.href = `https://metamask.app.link/dapp/${full}`;
-      }, 800);
-    }
-  
-  </script>
+  <script src="js/main.js"></script>
 </body>
 </html>

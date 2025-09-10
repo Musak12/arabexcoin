@@ -1,0 +1,47 @@
+:root {
+  --accent: #00ffc3;
+  --accent-2: #00d6aa;
+  --bg-1: #0e0e0e;
+  --bg-2: #1f1f1f;
+  --panel: #222;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(to bottom, var(--bg-1), var(--bg-2));
+  color: white;
+  text-align: center;
+  padding: 50px 20px;
+}
+.container { max-width: 760px; margin: auto; }
+h1 { font-size: 2.5em; color: var(--accent); margin-bottom: 10px; }
+h2 { font-weight: normal; color: #ccc; margin-bottom: 16px; }
+#countdown {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 24px;
+  color: var(--accent);
+}
+.token-info {
+  background-color: var(--panel);
+  padding: 20px; border-radius: 10px;
+  word-break: break-word; margin-bottom: 18px;
+  text-align: left;
+}
+.row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.contact { color: #aaa; font-size: 0.9em; margin: 14px 0 6px; }
+.logo { width: 220px; height: auto; margin-bottom: 22px; border-radius: 12px; }
+.btn {
+  background-color: var(--accent); border: none; color: #000;
+  padding: 12px 18px; border-radius: 8px; font-size: 1em;
+  cursor: pointer; display: inline-block; margin: 8px; text-decoration: none;
+  font-weight: 700;
+}
+.btn:hover { background-color: var(--accent-2); }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.kvs { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+.badge { display:inline-block; padding: 2px 8px; border-radius: 999px; background:#333; color:#ddd; font-size:12px; margin-left:8px; }
+@media (max-width: 600px) { h1 { font-size: 2em; } .logo { width: 160px; } }
