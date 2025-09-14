@@ -137,6 +137,48 @@ async function buyPresaleUSD() {
   }
 }
 
+// ...existing code...
+
+async function buyPresaleBNB() {
+  try {
+    if (!presaleContract) await connectWallet();
+    if (Date.now() < PRESALE_START) { alert("Presale starts soon."); return; }
+
+    const bnbStr = prompt("Enter BNB amount (e.g. 0.1):", "");
+    if (!bnbStr) return;
+    if (isNaN(Number(bnbStr)) || Number(bnbStr) <= 0) { alert("Invalid BNB amount"); return; }
+
+    const value = ethers.utils.parseEther(bnbStr);
+    const balance = await signer.getBalance();
+    const arxExpected = (Number(bnbStr) * 1000 * 300).toLocaleString(); // Adjust rate if needed
+
+    if (balance.lt(value)) {
+      alert(`Insufficient BNB balance in your wallet to buy ARX`);
+      return;
+    }
+
+    if (!confirm(`You will send ${bnbStr} BNB and receive about ${arxExpected} ARX`)) return;
+
+    try {
+      const presale1 = new ethers.Contract(PRESALE, PRESALE_BUY_WITH_BNB_ABI, signer);
+      const tx = await presale1.buyWithBNB({ value });
+      alert("Tx sent: " + tx.hash);
+      await tx.wait();
+      alert("Purchase confirmed!");
+    } catch (e1) {
+      const tx2 = await presaleContract.buy({ value });
+      alert("Tx sent: " + tx2.hash);
+      await tx2.wait();
+      alert("Purchase confirmed!");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Buy failed: " + (err?.message || err));
+  }
+}
+
+// ...existing code...
+
 async function claimARX() {
   try {
     if (!presaleContract) await connectWallet();
