@@ -155,7 +155,7 @@ async function buyPresaleBNB() {
     const arxExpected = (Number(bnbStr) * 1000 * 300).toLocaleString(); // Adjust rate if needed
 
     if (balance.lt(value)) {
-      alert(`Insufficient BNB balance in your wallet to buy ARX`);
+      alert(`Insufficient BNB balance in your wallet to buy ${arxExpected} ARX`);
       return;
     }
 
