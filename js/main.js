@@ -70,6 +70,8 @@ async function connectWallet() {
     const addr = await signer.getAddress();
     document.getElementById('connectBtn').textContent = `Connected: ${addr.slice(0,6)}…${addr.slice(-4)}`;
     document.getElementById('buyBtn').disabled = false;
+    document.getElementById('buyBNBBtn').disabled = false;
+
     document.getElementById('claimBtn').disabled = false;
     document.getElementById('watchBtn').disabled = false;
     alert("Wallet connected on BNB Smart Chain");
