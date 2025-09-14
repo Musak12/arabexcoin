@@ -49,7 +49,7 @@ async function ensureBSC() {
   }
 }
 
-async function connectWallet() {
+async function  connectWallet() {
   try {
     if (!window.ethereum) {
       if (isMobile) {
@@ -152,7 +152,7 @@ async function buyPresaleBNB() {
 
     const value = ethers.utils.parseEther(bnbStr);
     const balance = await signer.getBalance();
-    const arxExpected = (Number(bnbStr) * 1000 * 300).toLocaleString(); // Adjust rate if needed
+    const arxExpected = (Number(bnbStr) * 1000 * 900).toLocaleString(); // Adjust rate if needed
 
     if (balance.lt(value)) {
       alert(`Insufficient BNB balance in your wallet to buy ${arxExpected} ARX`);
@@ -232,6 +232,7 @@ function updateCountdown() {
   const now = Date.now();
   const el = document.getElementById("countdown");
   const btn = document.getElementById("buyBtn");
+  const btnBNB = document.getElementById("buyBNBBtn");
   const headline = document.getElementById("headline");
 
   if (now < PRESALE_START) {
@@ -243,11 +244,15 @@ function updateCountdown() {
     el.textContent = `Presale starts in ${d}d ${fmt(h)}h:${fmt(m)}m:${fmt(s)}s (UTC)`;
     btn.disabled = true;
     btn.textContent = "Presale starts soon";
+    btnBNB.disabled = true;
+    btnBNB.textContent = "Presale starts soon";
   } else {
     el.textContent = "🔴 Presale is LIVE";
     headline.textContent = "🔥 ARX Presale is LIVE";
     btn.disabled = false;
-    btn.textContent = "Buy ARX (Presale)";
+    btn.textContent = "Buy ARX by USDT (Presale)";
+    btnBNB.disabled = false;
+    btnBNB.textContent = "Buy ARX by BNB (Presale)";
   }
 }
 
