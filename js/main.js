@@ -139,7 +139,17 @@ async function buyPresaleUSD() {
   }
 }
 
-// ...existing code...
+// Get live BNB price in USD
+async function getLiveBNBPrice() {
+  if (!provider) await connectWallet();
+  const feed = new ethers.Contract(BNB_USD_FEED, FEED_ABI, provider);
+  const [dec, round] = await Promise.all([
+    feed.decimals(),
+    feed.latestRoundData()
+  ]);
+  const price = Number(round.answer) / (10 ** dec); // price in USD
+  return price;
+}
 
 async function buyPresaleBNB() {
   try {
@@ -152,14 +162,18 @@ async function buyPresaleBNB() {
 
     const value = ethers.utils.parseEther(bnbStr);
     const balance = await signer.getBalance();
-    const arxExpected = (Number(bnbStr) * 1000 * 900).toLocaleString(); // Adjust rate if needed
+        
+    const price = await getLiveBNBPrice(); // price in USD
+    const bnbAmount = Number(bnbStr);
+    const usdValue = bnbAmount * price;
+    const arxExpected = usdValue * 1000; // If 1 USD = 1000 ARX
 
     if (balance.lt(value)) {
-      alert(`Insufficient BNB balance in your wallet to buy ${arxExpected} ARX`);
+      alert(`Insufficient BNB balance in your wallet to buy ${arxExpected.toLocaleString()} ARX`);
       return;
     }
 
-    if (!confirm(`You will send ${bnbStr} BNB and receive about ${arxExpected} ARX`)) return;
+    if (!confirm(`You will send ${bnbStr} BNB (~$${usdValue.toFixed(2)}) and receive about ${arxExpected.toLocaleString()} ARX`)) return;
 
     try {
       const presale1 = new ethers.Contract(PRESALE, PRESALE_BUY_WITH_BNB_ABI, signer);
@@ -178,8 +192,6 @@ async function buyPresaleBNB() {
     alert("Buy failed: " + (err?.message || err));
   }
 }
-
-// ...existing code...
 
 async function claimARX() {
   try {
