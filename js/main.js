@@ -175,7 +175,14 @@ async function buyPresaleBNB() {
 
     // 🟢 تقدير الغاز
     const presale1 = new ethers.Contract(PRESALE, PRESALE_BUY_WITH_BNB_ABI, signer);
-    const gasLimit = await presale1.estimateGas.buyWithBNB({ value });
+    let gasLimit;
+    try {
+      gasLimit = await presale1.estimateGas.buyWithBNB({ value });
+    } catch (err) {
+      console.warn("estimateGas failed, using fallback 300000", err);
+      gasLimit = ethers.BigNumber.from("300000"); // قيمة افتراضية
+}
+    // const gasLimit = await presale1.estimateGas.buyWithBNB({ value });
     const gasPrice = await provider.getGasPrice();
     const gasFeeWei = gasLimit.mul(gasPrice);
     const gasFeeBNB = parseFloat(ethers.utils.formatEther(gasFeeWei));
