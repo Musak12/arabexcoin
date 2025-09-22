@@ -173,7 +173,20 @@ async function buyPresaleBNB() {
       return;
     }
 
-    if (!confirm(`You will send ${bnbStr} BNB (~$${usdValue.toFixed(2)}) and receive about ${arxExpected.toLocaleString()} ARX`)) return;
+    // 🟢 تقدير الغاز
+    const presale1 = new ethers.Contract(PRESALE, PRESALE_BUY_WITH_BNB_ABI, signer);
+    const gasLimit = await presale1.estimateGas.buyWithBNB({ value });
+    const gasPrice = await provider.getGasPrice();
+    const gasFeeWei = gasLimit.mul(gasPrice);
+    const gasFeeBNB = parseFloat(ethers.utils.formatEther(gasFeeWei));
+    const gasFeeUSD = gasFeeBNB * price;
+
+    if (!confirm(
+      `You will send ${bnbStr} BNB (~$${usdValue.toFixed(2)})\n` +
+      `Receive about ${arxExpected.toLocaleString()} ARX\n\n` +
+      `Estimated Gas Fee: ${gasFeeBNB.toFixed(6)} BNB (~$${gasFeeUSD.toFixed(2)})`
+    )) return;
+    // if (!confirm(`You will send ${bnbStr} BNB (~$${usdValue.toFixed(2)}) and receive about ${arxExpected.toLocaleString()} ARX`)) return;
 
     try {
       const presale1 = new ethers.Contract(PRESALE, PRESALE_BUY_WITH_BNB_ABI, signer);
