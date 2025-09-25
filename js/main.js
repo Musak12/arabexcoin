@@ -253,13 +253,15 @@ async function claimARX() {
     const totalLocked = info[0];
     const nextUnlock = info[1];
     if (totalLocked.eq(0)) { alert("Nothing to claim yet."); return; }
+    const arxAmount = Number(ethers.utils.formatUnits(totalLocked, TOKEN_DECIMALS));
+
     const nowSec = Math.floor(Date.now()/1000);
     if (nowSec < nextUnlock.toNumber()) {
       const secs = nextUnlock.toNumber() - nowSec;
       const hrs = Math.ceil(secs/3600);
-      alert("you have "+ totalLocked.toNumber() +" ARX will be Claimed\n" + "Still locked for ~" + hrs + " hours.");
+      alert("you have "+ arxAmount +" ARX will be Claimed\n" + "Still locked for ~" + hrs + " hours.");
 
-      return;
+      //return;
     }
     const tx = await presaleContract.claim();
     alert("Claim tx: " + tx.hash);
