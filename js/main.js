@@ -269,7 +269,7 @@ async function claimARX() {
     const { totalLocked, nextUnlockTime } = await presaleRead.lockedBalanceOf(me);
 
     if (totalLocked.isZero()) {
-      alert("Nothing to claim yet (رصيدك المقفول = 0).");
+      alert("Nothing to claim yet (locked value = 0).");
       return;
     }
 
@@ -278,8 +278,8 @@ async function claimARX() {
 
     if (now < unlockAt) {
       alert(
-        `لديك ${ethers.utils.formatUnits(totalLocked, 18)} ARX محفوظة.\n` +
-        `الاستلام يفتح بعد: ${fmtTimeLeft(unlockAt - now)}`
+        `you have ${ethers.utils.formatUnits(totalLocked, 18)} ARX in your wallet.\n` +
+        `collect it after : ${fmtTimeLeft(unlockAt - now)}`
       );
       return;
     }
@@ -289,7 +289,7 @@ async function claimARX() {
     try { active = await presaleRead.saleActive(); } catch {}
     try { endTs = await presaleRead.presaleEnd(); } catch {}
     if (active === true && endTs && now < endTs.toNumber()) {
-      alert("البيع ما زال نشطًا، المطالبة ستفتح بعد انتهاء الـ presale.");
+      alert("presale period not ended yet.");
       return;
     }
 
