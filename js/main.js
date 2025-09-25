@@ -106,6 +106,8 @@ async function  connectWallet() {
     document.getElementById('claimBtn').disabled = false;
     document.getElementById('watchBtn').disabled = false;
     alert("Wallet connected on BNB Smart Chain");
+    await refreshLockedInfo();
+
     importARXToken();
   } catch (err) {
     console.error(err);
@@ -164,6 +166,8 @@ async function buyPresaleUSD() {
       alert("Tx sent: " + tx2.hash);
       await tx2.wait();
       alert("Purchase confirmed!");
+      await refreshLockedInfo();
+
     }
   } catch (err) {
     console.error(err);
@@ -238,12 +242,15 @@ async function buyPresaleBNB() {
       alert("Tx sent: " + tx2.hash);
       await tx2.wait();
       alert("Purchase confirmed!");
+      await refreshLockedInfo();
+
     }
   } catch (err) {
     console.error(err);
     alert("Buy failed: " + (err?.message || err));
   }
 }
+
 // ABI محدَّث ليرجع tuple
 const PRESALE_ABI_VIEW = [
   "function lockedBalanceOf(address) view returns (uint256 totalLocked, uint256 nextUnlockTime)",
@@ -251,6 +258,73 @@ const PRESALE_ABI_VIEW = [
   "function presaleEnd() view returns (uint256)",
   "function claim()"
 ];
+
+// تنسيق مبسط
+function fmt(num, dec=2) {
+  const n = Number(num);
+  return isNaN(n) ? "0" : n.toLocaleString(undefined,{maximumFractionDigits:dec});
+}
+function fmtCountdown(secs) {
+  if (secs < 0) secs = 0;
+  const d = Math.floor(secs/86400);
+  const h = Math.floor((secs%86400)/3600);
+  const m = Math.floor((secs%3600)/60);
+  const s = Math.floor(secs%60);
+  if (d>0) return `${d}d ${h}h ${m}m`;
+  if (h>0) return `${h}h ${m}m ${s}s`;
+  if (m>0) return `${m}m ${s}s`;
+  return `${s}s`;
+}
+
+let _unlockTimer = null;
+
+// قراءة الرصيد المقفول وتحديث الواجهة
+async function refreshLockedInfo() {
+  try {
+    if (!window.ethereum || !provider) return;
+    const addr = await signer.getAddress();
+
+    const presaleRead = new ethers.Contract(PRESALE, PRESALE_ABI_VIEW, provider);
+    const { totalLocked, nextUnlockTime } = await presaleRead.lockedBalanceOf(addr);
+
+    const box = document.getElementById('lockedBox');
+    const txt = document.getElementById('lockedInfo');
+    const unt = document.getElementById('unlockInfo');
+
+    // أوقف أي عدّاد سابق
+    if (_unlockTimer) { clearInterval(_unlockTimer); _unlockTimer = null; }
+
+    if (totalLocked.isZero()) {
+      box.style.display = 'block';
+      txt.textContent = "رصيدك المقفول: 0 ARX";
+      unt.textContent = "عند الشراء سيتم إظهار وقت الفتح هنا.";
+      return;
+    }
+
+    const lockedStr = ethers.utils.formatUnits(totalLocked, 18);
+    box.style.display = 'block';
+    txt.textContent = `رصيدك المقفول: ${fmt(lockedStr, 4)} ARX`;
+
+    const unlockAt = nextUnlockTime.toNumber();
+    const updateCountdown = () => {
+      const now = Math.floor(Date.now()/1000);
+      const left = unlockAt - now;
+      if (left <= 0) {
+        unt.textContent = "تم فتح الاستلام — يمكنك الضغط على Claim.";
+        clearInterval(_unlockTimer); _unlockTimer = null;
+      } else {
+        const dateStr = new Date(unlockAt*1000).toLocaleString();
+        unt.textContent = `يفتح الاستلام بعد: ${fmtCountdown(left)} ( ${dateStr} )`;
+      }
+    };
+    updateCountdown();
+    _unlockTimer = setInterval(updateCountdown, 1000);
+
+  } catch (e) {
+    console.log("refreshLockedInfo error:", e);
+  }
+}
+
 
 function fmtTimeLeft(secLeft) {
   const h = Math.floor(secLeft/3600);
