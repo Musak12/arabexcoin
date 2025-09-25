@@ -296,25 +296,25 @@ async function refreshLockedInfo() {
 
     if (totalLocked.isZero()) {
       box.style.display = 'block';
-      txt.textContent = "رصيدك المقفول: 0 ARX";
-      unt.textContent = "عند الشراء سيتم إظهار وقت الفتح هنا.";
+      txt.textContent = "Your locked balance: 0.0 ARX";
+      unt.textContent = "No locked ARX found in your wallet.";
       return;
     }
 
     const lockedStr = ethers.utils.formatUnits(totalLocked, 18);
     box.style.display = 'block';
-    txt.textContent = `رصيدك المقفول: ${fmt(lockedStr, 4)} ARX`;
+    txt.textContent =  `Your locked balance: ${fmt(lockedStr, 4)} ARX`;// `رصيدك المقفول: ${fmt(lockedStr, 4)} ARX`;
 
     const unlockAt = nextUnlockTime.toNumber();
     const updateCountdown = () => {
       const now = Math.floor(Date.now()/1000);
       const left = unlockAt - now;
       if (left <= 0) {
-        unt.textContent = "تم فتح الاستلام — يمكنك الضغط على Claim.";
+        unt.textContent = "You can now claim your ARX!";
         clearInterval(_unlockTimer); _unlockTimer = null;
       } else {
         const dateStr = new Date(unlockAt*1000).toLocaleString();
-        unt.textContent = `يفتح الاستلام بعد: ${fmtCountdown(left)} ( ${dateStr} )`;
+        unt.textContent = ` Claiming will be available ${fmtCountdown(left)} ( ${dateStr} )`;
       }
     };
     updateCountdown();
