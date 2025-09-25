@@ -105,8 +105,8 @@ async function  connectWallet() {
 
     document.getElementById('claimBtn').disabled = false;
     document.getElementById('watchBtn').disabled = false;
-    importARXToken();
     alert("Wallet connected on BNB Smart Chain");
+    importARXToken();
   } catch (err) {
     console.error(err);
     alert("Failed to connect wallet: " + (err?.message || err));
@@ -257,7 +257,8 @@ async function claimARX() {
     if (nowSec < nextUnlock.toNumber()) {
       const secs = nextUnlock.toNumber() - nowSec;
       const hrs = Math.ceil(secs/3600);
-      alert("Still locked for ~" + hrs + " hours.");
+      alert("you have "+ totalLocked.toNumber() +" ARX will be Claimed\n" + "Still locked for ~" + hrs + " hours.");
+
       return;
     }
     const tx = await presaleContract.claim();
