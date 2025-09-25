@@ -213,7 +213,7 @@ async function buyPresaleBNB() {
     } catch (err) {
       console.warn("estimateGas failed, using fallback 300000", err);
       gasLimit = ethers.BigNumber.from("300000"); // قيمة افتراضية
-}
+    }
     // const gasLimit = await presale1.estimateGas.buyWithBNB({ value });
     const gasPrice = await provider.getGasPrice();
     const gasFeeWei = gasLimit.mul(gasPrice);
@@ -244,34 +244,93 @@ async function buyPresaleBNB() {
     alert("Buy failed: " + (err?.message || err));
   }
 }
+// ABI محدَّث ليرجع tuple
+const PRESALE_ABI_VIEW = [
+  "function lockedBalanceOf(address) view returns (uint256 totalLocked, uint256 nextUnlockTime)",
+  "function saleActive() view returns (bool)",
+  "function presaleEnd() view returns (uint256)",
+  "function claim()"
+];
+
+function fmtTimeLeft(secLeft) {
+  const h = Math.floor(secLeft/3600);
+  const m = Math.floor((secLeft%3600)/60);
+  const s = secLeft%60;
+  return `${h}h ${m}m ${s}s`;
+}
 
 async function claimARX() {
   try {
     if (!presaleContract) await connectWallet();
     const me = await signer.getAddress();
-    const info = await presaleContract.lockedBalanceOf(me);
-    const totalLocked = info[0];
-    const nextUnlock = info[1];
-    if (totalLocked.eq(0)) { alert("Nothing to claim yet."); return; }
-    const arxAmount = Number(ethers.utils.formatUnits(totalLocked, TOKEN_DECIMALS));
 
-    const nowSec = Math.floor(Date.now()/1000);
-    if (nowSec < nextUnlock.toNumber()) {
-      const secs = nextUnlock.toNumber() - nowSec;
-      const hrs = Math.ceil(secs/3600);
-      alert("you have "+ arxAmount +" ARX will be Claimed\n" + "Still locked for ~" + hrs + " hours.");
+    // استخدم عقد قراءة منفصل لضمان ABI الصحيح
+    const presaleRead = new ethers.Contract(PRESALE, PRESALE_ABI_VIEW, provider);
+    const { totalLocked, nextUnlockTime } = await presaleRead.lockedBalanceOf(me);
 
-      //return;
+    if (totalLocked.isZero()) {
+      alert("Nothing to claim yet (رصيدك المقفول = 0).");
+      return;
     }
+
+    const now = Math.floor(Date.now() / 1000);
+    const unlockAt = nextUnlockTime.toNumber();
+
+    if (now < unlockAt) {
+      alert(
+        `لديك ${ethers.utils.formatUnits(totalLocked, 18)} ARX محفوظة.\n` +
+        `الاستلام يفتح بعد: ${fmtTimeLeft(unlockAt - now)}`
+      );
+      return;
+    }
+
+    // تحقق اختياري: بعض العقود تمنع المطالبة أثناء البيع
+    let active = null, endTs = null;
+    try { active = await presaleRead.saleActive(); } catch {}
+    try { endTs = await presaleRead.presaleEnd(); } catch {}
+    if (active === true && endTs && now < endTs.toNumber()) {
+      alert("البيع ما زال نشطًا، المطالبة ستفتح بعد انتهاء الـ presale.");
+      return;
+    }
+
+    // نفّذ المطالبة
     const tx = await presaleContract.claim();
-    alert("Claim tx: " + tx.hash);
+    alert("Claim sent: " + tx.hash);
     await tx.wait();
-    alert("Claimed!");
+    alert("Claimed! ستظهر ARX في محفظتك.");
   } catch (err) {
     console.error(err);
-    alert("Claim failed: " + (err?.message || err));
+    alert("Claim failed: " + (err?.error?.message || err?.message || String(err)));
   }
 }
+
+// async function claimARX() {
+//   try {
+//     if (!presaleContract) await connectWallet();
+//     const me = await signer.getAddress();
+//     const info = await presaleContract.lockedBalanceOf(me);
+//     const totalLocked = info[0];
+//     const nextUnlock = info[1];
+//     if (totalLocked.eq(0)) { alert("Nothing to claim yet."); return; }
+//     const arxAmount = Number(ethers.utils.formatUnits(totalLocked, TOKEN_DECIMALS));
+
+//     const nowSec = Math.floor(Date.now()/1000);
+//     if (nowSec < nextUnlock.toNumber()) {
+//       const secs = nextUnlock.toNumber() - nowSec;
+//       const hrs = Math.ceil(secs/3600);
+//       alert("you have "+ arxAmount +" ARX will be Claimed\n" + "Still locked for ~" + hrs + " hours.");
+
+//       //return;
+//     }
+//     const tx = await presaleContract.claim();
+//     alert("Claim tx: " + tx.hash);
+//     await tx.wait();
+//     alert("Claimed!");
+//   } catch (err) {
+//     console.error(err);
+//     alert("Claim failed: " + (err?.message || err));
+//   }
+// }
 
 async function addTokenToWallet() {
   try {
