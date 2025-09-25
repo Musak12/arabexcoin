@@ -1,6 +1,10 @@
 // This file contains the JavaScript code for the Arabex Coin project. 
 // It handles the functionality of the webpage, including wallet connection, presale interactions, and countdown logic.
 
+const TOKEN_SYMBOL = "ARX";
+const TOKEN_DECIMALS = 18;
+// غيّر المسار أدناه لوغو لوجو العملة على موقعك
+const TOKEN_IMAGE = "https://arabexcoin.com/assets/img/arabex-logo.png";
 const PRESALE   = "0x762438b37de78Ebbdeeac6D5F6Cf85f6F002E0aF";
 const TOKEN     = "0x3A18719De55E2b9420beec4E1B03852e4cd7c46c"; 
 const PRESALE_START = 1756684800 * 1000;
@@ -48,6 +52,33 @@ async function ensureBSC() {
     }
   }
 }
+async function importARXToken() {
+  if (!window.ethereum) return false;
+  try {
+    const wasAdded = await ethereum.request({
+      method: "wallet_watchAsset",
+      params: {
+        type: "ERC20",
+        options: {
+          address: TOKEN,         // مثال: 0x3A18719De55E2b9420beec4E1B03852e4cd7c46c
+          symbol: TOKEN_SYMBOL,   // "ARX"
+          decimals: TOKEN_DECIMALS,
+          image: TOKEN_IMAGE
+        }
+      }
+    });
+    if (wasAdded) {
+      console.log("ARX token added to wallet.");
+      return true;
+    } else {
+      console.log("User dismissed token import.");
+      return false;
+    }
+  } catch (e) {
+    console.error("watchAsset error:", e);
+    return false;
+  }
+}
 
 async function  connectWallet() {
   try {
@@ -69,11 +100,12 @@ async function  connectWallet() {
     presaleContract = new ethers.Contract(PRESALE, PRESALE_ABI, signer);
     const addr = await signer.getAddress();
     document.getElementById('connectBtn').textContent = `Connected: ${addr.slice(0,6)}…${addr.slice(-4)}`;
-    document.getElementById('buyBtn').disabled = false;
+    // document.getElementById('buyBtn').disabled = false;
     document.getElementById('buyBNBBtn').disabled = false;
 
     document.getElementById('claimBtn').disabled = false;
     document.getElementById('watchBtn').disabled = false;
+    importARXToken();
     alert("Wallet connected on BNB Smart Chain");
   } catch (err) {
     console.error(err);
