@@ -20,10 +20,10 @@
     </div>
 
     <!-- ضعها في مكان ظاهر أعلى أزرار الشراء -->
-<div id="lockedBox" style="display:none; margin:12px 0; padding:10px; border:1px solid #2c2c2c; border-radius:10px;">
-  <div id="lockedInfo" style="font-weight:600;">Loading…</div>
-  <div id="unlockInfo" style="font-size:14px; opacity:.85;"></div>
-</div>
+      <div id="lockedBox" style="display:none; margin:12px 0; padding:10px; border:1px solid #39ea92; border-radius:10px;">
+        <div id="lockedInfo" style="font-weight:600;">0.0</div>
+        <div id="unlockInfo" style="font-size:14px; opacity:.85;"></div>
+      </div>
 
     <div class="row">
       <button id="connectBtn" class="btn" onclick="connectWallet()">Connect Wallet</button>
@@ -63,5 +63,9 @@
 
   <script src="https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script src="js/main.js"></script>
+  <script>
+  // Show the lockedBox div
+  document.getElementById('lockedBox').style.display = 'block';
+</script>
 </body>
 </html>
